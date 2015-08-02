@@ -1,0 +1,63 @@
+cluster :app do |c|
+  c.remote(user: 'root', ip: '127.0.0.1')
+end
+
+load_balancer :nginx do |lb|
+  lb.remote(user: 'root', ip: '')
+  lb.upstream = '/opt/nginx/conf/upstream.d'
+end
+
+application :amtrak do |a|
+  a.container :redis do |c|
+    c.image = :amtrak_redis
+    c.hostname = :amtrak_redis
+    c.volumes = ['./amtrak_redis:/redis']
+  end
+
+  a.container :amtrak_tracelyzer do |c|
+    c.image = :amtrak_tracelyzer
+    c.hostname = :amtrak_tracelyzer
+  end
+
+  a.container :amtrak_web do |c|
+    c.image = :amtrak_endpoint
+    c.hostname = :amtrak_endpoint
+    c.links = [:redis, :tracelyzer]
+    c.volumes_from = [:tracelyzer]
+    c.command = 'unicorn'
+  end
+
+  a.container :amtrak_worker do |c|
+    c.scale = 3
+    c.image = :amtrak_endpoint
+    c.hostname = :amtrak_endpoint
+    c.links = [:redis, :tracelyzer]
+    c.volumes_from = [:tracelyzer]
+    c.command = 'resque'
+  end
+
+  a.container :amtrak_clockwork do |c|
+    c.image = :amtrak_endpoint
+    c.hostname = :amtrak_endpoint
+    c.links = [:redis, :tracelyzer]
+    c.volumes_from = [:tracelyzer]
+    c.command = 'clockwork'
+  end
+
+  a.container :amtrak_nginx do |c|
+    c.image = :nginx_oboe
+    c.hostname = :amtrak_nginx
+    c.links = [:redis, :tracelyzer]
+    c.volumes_from = [:tracelyzer, :web]
+    c.ports = ['8080/tcp']
+  end
+end
+
+deploy :amtrak do |d|
+  d.s3_location = 'tlunter-amtrak/app-deployer'
+  d.cluster :app
+  d.load_balancer :nginx
+  d.application :amtrak
+end
+
+# vim: filetype=ruby
