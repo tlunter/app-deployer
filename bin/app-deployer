@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+require 'app_deployer'
+require 'pry'
+
+Pry.start
+
+# vim: filetype=ruby
