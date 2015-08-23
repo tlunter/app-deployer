@@ -1,0 +1,5 @@
+upstream <%= name %> {
+<% servers.each do |server| %>
+  server <%= server[:host] %>:<%= server[:port] %>;
+<% end %>
+}
