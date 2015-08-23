@@ -6,6 +6,7 @@ module AppDeployer
 
         add_method_to_sandbox(mod)
         mod.extend(ClassMethods)
+        mod.attribute(:name, required: true)
       end
 
       # Adds a method with the underscored version of the name to
@@ -14,7 +15,7 @@ module AppDeployer
         module_name = mod.name.demodulize
         name = module_name.underscore.to_sym
         Sandbox.send(:define_method, name) do |*args, &block|
-          if args.empty?
+          if args.empty? || !args.first.is_a?(Symbol)
             raise "Must pass at least a name to `##{name}`!"
           else
             Sandbox.instance[name][args.first] ||= mod.new(*args, &block)
@@ -96,7 +97,7 @@ module AppDeployer
           end
 
           define_method(singular) do |*args, &block|
-            if args.empty?
+            if args.empty? || !args.first.is_a?(Symbol)
               raise "Must pass at least a name to `##{singular}`!"
             else
               attr_name = args.first
@@ -109,8 +110,18 @@ module AppDeployer
 
       def initialize(*args, &block)
         self.class.default_values.each do |key, value|
-          instance_variable_set(:"@#{key}", (value.dup rescue nil))
+          if value.nil?
+            instance_variable_set(:"@#{key}", nil)
+          elsif value.is_a?(Proc)
+            instance_variable_set(:"@#{key}", value.call)
+          elsif value.is_a?(Symbol)
+            instance_variable_set(:"@#{key}", value)
+          else
+            instance_variable_set(:"@#{key}", value.dup)
+          end
         end
+
+        self.name = args.first
 
         before_initialize
         if args.last.is_a?(Hash)
