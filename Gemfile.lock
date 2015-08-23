@@ -22,6 +22,7 @@ GEM
     method_source (0.8.2)
     minitest (5.7.0)
     multi_json (1.11.2)
+    net-ssh (2.9.2)
     pry (0.10.1)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -43,6 +44,7 @@ DEPENDENCIES
   activesupport
   aws-sdk
   docker
+  net-ssh
   pry
   pry-doc
   rake

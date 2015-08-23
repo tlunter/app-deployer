@@ -1,5 +1,7 @@
 require 'active_support/inflector'
 require 'singleton'
+require 'net/ssh'
+require 'erb'
 
 require 'app_deployer/core'
 require 'app_deployer/cluster'
