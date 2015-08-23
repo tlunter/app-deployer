@@ -1,5 +1,8 @@
 cluster :app do |c|
-  c.remote(user: 'root', host: '127.0.0.1')
+  c.cluster_instance :'tlunter.com' do |ci|
+    ci.remote(url: 'tcp://tlunter.com:2376')
+    ci.options = { cert_path: File.join(Dir.home, '.docker', 'tlunter.com', 'certs'), ssl_verify_peer: false }
+  end
 end
 
 load_balancer :nginx do |lb|
@@ -8,6 +11,8 @@ load_balancer :nginx do |lb|
 end
 
 application :amtrak do |a|
+  a.cluster :app
+
   a.container :redis do |c|
     c.image = :amtrak_redis
     c.hostname = :amtrak_redis
@@ -55,7 +60,6 @@ end
 
 deploy :amtrak do |d|
   d.s3_location = 'tlunter-amtrak/app-deployer'
-  d.cluster :app
   d.load_balancer :nginx
   d.application :amtrak
 end

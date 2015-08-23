@@ -2,14 +2,12 @@ module AppDeployer
   class Cluster
     include Core::DSL
 
-    attribute :location, default: :local
+    class_attribute :cluster_instances, type: :collection
 
-    def remote(hash)
-      self.location = hash
-    end
-
-    def local
-      self.location = :local
+    def test_connectivity
+      cluster_instances.reduce(true) do |memo, ci|
+        memo &&= ci.test_connectivity
+      end
     end
   end
 end
