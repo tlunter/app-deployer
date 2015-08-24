@@ -23,7 +23,7 @@ module AppDeployer
       @connection.write_file(file_name: file_name, contents: output)
     end
 
-    def reload!
+    def reload
       @connection.kill(process_id: get_process_id, signal: 'HUP')
     end
 
