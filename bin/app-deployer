@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
-require 'app_deployer'
-require 'pry'
+require 'thor'
+require 'app_deployer/cli'
 
-Pry.start
+AppDeployer::CLI.start(ARGV)
 
 # vim: filetype=ruby
