@@ -32,17 +32,18 @@ module AppDeployer
           @required_values ||= []
         end
 
-        def class_attribute(name, type: :record)
+        def class_attribute(name, class_name: nil, type: :record)
           name = name.to_sym
+          class_name = name if class_name.nil?
           @attributes ||= []
           @attributes << name
           @class_attributes ||= []
           @class_attributes << name
 
           if type == :record
-            add_record_class_attribute(name)
+            add_record_class_attribute(name, class_name)
           elsif type == :collection
-            add_collection_class_attribute(name)
+            add_collection_class_attribute(name, class_name)
           end
         end
 
@@ -67,21 +68,22 @@ module AppDeployer
 
         private
 
-        def add_record_class_attribute(name)
+        def add_record_class_attribute(name, class_name)
           default_values[name] = nil
           define_method(name) do |*args, &block|
             if args.empty?
               instance_variable_get(:"@#{name}")
             else
               attr_name = args.first
-              Sandbox.instance[name][attr_name] ||= Sandbox.instance.send(name.to_sym, *args, &block)
-              instance_variable_set(:"@#{name}", Sandbox.instance[name][attr_name])
+              Sandbox.instance[class_name][attr_name] ||= Sandbox.instance.send(class_name, *args, &block)
+              instance_variable_set(:"@#{name}", Sandbox.instance[class_name][attr_name])
             end
           end
         end
 
-        def add_collection_class_attribute(name)
+        def add_collection_class_attribute(name, class_name)
           singular = name.to_s.singularize.to_sym
+          singular_class_name = class_name.to_s.singularize.to_sym
           default_values[name] = []
 
           if singular == name
@@ -101,8 +103,8 @@ module AppDeployer
               raise "Must pass at least a name to `##{singular}`!"
             else
               attr_name = args.first
-              Sandbox.instance[singular][attr_name] ||= Sandbox.instance.send(singular.to_sym, *args, &block)
-              send(name.to_sym) << Sandbox.instance[singular][attr_name]
+              Sandbox.instance[singular_class_name][attr_name] ||= Sandbox.instance.send(singular_class_name, *args, &block)
+              send(name.to_sym) << Sandbox.instance[singular_class_name][attr_name]
             end
           end
         end
@@ -110,14 +112,14 @@ module AppDeployer
 
       def initialize(*args, &block)
         self.class.default_values.each do |key, value|
-          if value.nil?
-            instance_variable_set(:"@#{key}", nil)
-          elsif value.is_a?(Proc)
+          if value.is_a?(Proc)
             instance_variable_set(:"@#{key}", value.call)
-          elsif value.is_a?(Symbol)
-            instance_variable_set(:"@#{key}", value)
           else
-            instance_variable_set(:"@#{key}", value.dup)
+            begin
+              instance_variable_set(:"@#{key}", value.clone)
+            rescue TypeError
+              instance_variable_set(:"@#{key}", value)
+            end
           end
         end
 
