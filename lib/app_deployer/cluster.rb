@@ -11,7 +11,7 @@ module AppDeployer
     end
 
     def least_used_instance
-      cluster_instances.min_by { |ci| ci.running_container_count }
+      cluster_instances.min_by(&:running_container_count)
     end
 
     def start_container(*args)
@@ -19,10 +19,26 @@ module AppDeployer
       instance.start_container(*args)
     end
 
+    def find_containers(container, version)
+      container_name = Container.build_name(container.name, nil)
+
+      containers.select do |docker_container|
+        labels = docker_container.info['Labels']
+
+        labels[Container::DEPLOYER_LABEL]                         && \
+        labels[Container::NAME_LABEL].to_s.start_with?(container_name) && \
+        labels[Container::VERSION_LABEL].to_s != version
+      end
+    end
+
     def find_load_balancer_containers(*args)
       cluster_instances.flat_map do |ci|
         ci.find_load_balancer_containers(*args)
       end
+    end
+
+    def containers
+      cluster_instances.flat_map(&:containers)
     end
   end
 end

@@ -10,8 +10,12 @@ module AppDeployer
       application.start(version)
     end
 
-    def assign_app_ports_to_load_balancer
-      servers = application.find_load_balancer_ports
+    def destroy_old_application(version)
+      application.destroy_old(version)
+    end
+
+    def assign_app_ports_to_load_balancer(version)
+      servers = application.find_load_balancer_ports(version)
       load_balancer.update_upstream(servers)
     end
 

@@ -30,13 +30,14 @@ module AppDeployer
       docker_container.start
     end
 
-    def find_load_balancer_containers(lb_container_names)
+    def find_load_balancer_containers(lb_container_names, version)
       lb_containers = containers.select do |container|
         labels = container.info['Labels']
-        next unless labels['com.tlunter.app-deployer']
+        next unless labels[Container::DEPLOYER_LABEL]
 
         lb_container_names.any? do |lb_container_name|
-          labels['com.tlunter.app-deployer.name'].to_s.start_with?(lb_container_name)
+          labels[Container::NAME_LABEL].to_s.start_with?(lb_container_name) && \
+          labels[Container::VERSION_LABEL].to_s == version
         end
       end
 

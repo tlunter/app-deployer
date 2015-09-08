@@ -2,6 +2,10 @@ module AppDeployer
   class Container
     include Core::DSL
 
+    VERSION_LABEL = 'com.tlunter.app-deployer.version'
+    NAME_LABEL = 'com.tlunter.app-deployer.name'
+    DEPLOYER_LABEL = 'com.tlunter.app-deployer'
+
     attribute :scale, default: 1
 
     attribute :image
@@ -29,9 +33,9 @@ module AppDeployer
         'Hostname' => hostname,
         'Volumes' => volumes_config,
         'Labels' => {
-          'com.tlunter.app-deployer.version': version,
-          'com.tlunter.app-deployer.name': self.class.build_name(name, number),
-          'com.tlunter.app-deployer': 'true'
+          VERSION_LABEL => version,
+          NAME_LABEL => self.class.build_name(name, number),
+          DEPLOYER_LABEL => 'true'
         },
         'Cmd' => command,
         'ExposedPorts' => Hash[ports.map { |p| [p, {}] }],

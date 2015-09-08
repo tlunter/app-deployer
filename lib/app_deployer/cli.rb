@@ -20,12 +20,20 @@ module AppDeployer
       deploy.start_application(options[:version])
     end
 
+    desc 'destroy-old-application DEPLOY', "destroy this application's old deploys"
+    def destroy_old_application(deploy)
+      setup
+
+      deploy = AppDeployer::Core::Sandbox.instance[:deploy][deploy.to_sym]
+      deploy.destroy_old_application(options[:version])
+    end
+
     desc 'update-load-balancer DEPLOY', "update the deploy's load-balancer upstream with current application routes"
     def update_load_balancer(deploy)
       setup
 
       deploy = AppDeployer::Core::Sandbox.instance[:deploy][deploy.to_sym]
-      deploy.assign_app_ports_to_load_balancer
+      deploy.assign_app_ports_to_load_balancer(options[:version])
       deploy.reload_load_balancer
     end
   end
