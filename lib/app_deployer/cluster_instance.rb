@@ -22,9 +22,9 @@ module AppDeployer
       Docker::Container.all({}, connection)
     end
 
-    def start_container(container, number)
+    def start_container(container, number, version)
       docker_container = Docker::Container.create(
-        container.to_container_create_opts(number),
+        container.to_container_create_opts(number, version),
         connection
       )
       docker_container.start

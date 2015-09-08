@@ -22,14 +22,14 @@ module AppDeployer
       (links + volumes_froms).uniq
     end
 
-    def to_container_create_opts(number)
+    def to_container_create_opts(number, version)
       {
         'name' => self.class.build_name(name, number),
         'Image' => image,
         'Hostname' => hostname,
         'Volumes' => volumes_config,
         'Labels' => {
-          'com.tlunter.app-deployer.version': '1', # TODO pass some sort of version
+          'com.tlunter.app-deployer.version': version,
           'com.tlunter.app-deployer.name': self.class.build_name(name, number),
           'com.tlunter.app-deployer': 'true'
         },

@@ -4,6 +4,7 @@ require 'pry'
 module AppDeployer
   class CLI < Thor
     class_option :file, type: :string, default: 'Appfile'
+    class_option :version, default: AppDeployer.git_sha
 
     no_commands do
       def setup
@@ -16,7 +17,7 @@ module AppDeployer
       setup
 
       deploy = AppDeployer::Core::Sandbox.instance[:deploy][deploy.to_sym]
-      deploy.start_application
+      deploy.start_application(options[:version])
     end
 
     desc 'update-load-balancer DEPLOY', "update the deploy's load-balancer upstream with current application routes"

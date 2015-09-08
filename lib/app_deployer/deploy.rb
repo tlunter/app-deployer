@@ -6,8 +6,8 @@ module AppDeployer
     class_attribute :load_balancer
     class_attribute :application
 
-    def start_application
-      application.start
+    def start_application(version)
+      application.start(version)
     end
 
     def assign_app_ports_to_load_balancer

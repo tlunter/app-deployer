@@ -5,10 +5,10 @@ module AppDeployer
     class_attribute :containers, type: :collection
     class_attribute :cluster
 
-    def start
+    def start(version)
       ordered_containers.each do |container|
         (1..container.scale).each do |number|
-          cluster.start_container(container, number)
+          cluster.start_container(container, number, version)
         end
       end
     end
