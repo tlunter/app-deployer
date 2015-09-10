@@ -18,8 +18,9 @@ module AppDeployer
 
     attribute :appear_in_load_balancer, default: false
 
-    def self.build_name(name, number)
-      "app_deployer-#{name}-#{number}"
+    def self.build_name(name, number=nil, version=nil)
+      suffix = [name, number, version].compact.join('-')
+      "app_deployer-#{suffix}"
     end
 
     def dependents
@@ -28,7 +29,7 @@ module AppDeployer
 
     def to_container_create_opts(number, version)
       {
-        'name' => self.class.build_name(name, number),
+        'name' => self.class.build_name(name, number, version),
         'Image' => image,
         'Hostname' => hostname,
         'Volumes' => volumes_config,
@@ -41,8 +42,8 @@ module AppDeployer
         'ExposedPorts' => Hash[ports.map { |p| [p, {}] }],
         'HostConfig' => {
           'PublishAllPorts' => !ports.empty?,
-          'Links' => links_config,
-          'VolumesFrom' => volumes_from_config
+          'Links' => links_config(version),
+          'VolumesFrom' => volumes_from_config(version)
         }
       }
     end
@@ -54,15 +55,15 @@ module AppDeployer
       end]
     end
 
-    def links_config
+    def links_config(version)
       links.map do |container|
-        [self.class.build_name(container.name, 1), container.name].join(':')
+        [self.class.build_name(container.name, 1, version), container.name].join(':')
       end
     end
 
-    def volumes_from_config
+    def volumes_from_config(version)
       volumes_froms.map do |container|
-        self.class.build_name(container.name, 1)
+        self.class.build_name(container.name, 1, version)
       end
     end
   end

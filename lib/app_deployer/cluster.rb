@@ -20,7 +20,7 @@ module AppDeployer
     end
 
     def find_containers(container, version)
-      container_name = Container.build_name(container.name, nil)
+      container_name = Container.build_name(container.name, '')
 
       containers.select do |docker_container|
         labels = docker_container.info['Labels']

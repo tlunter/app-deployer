@@ -15,7 +15,7 @@ module AppDeployer
 
     def find_load_balancer_ports(version)
       lb_containers = containers.select(&:appear_in_load_balancer)
-        .map { |c| AppDeployer::Container.build_name(c.name, nil) }
+        .map { |c| AppDeployer::Container.build_name(c.name, '') }
       cluster.find_load_balancer_containers(lb_containers, version)
     end
 
