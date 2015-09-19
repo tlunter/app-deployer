@@ -13,16 +13,36 @@ module AppDeployer
       end
     end
 
-    def find_load_balancer_ports(version)
+    def find_load_balancer_containers(version)
       lb_containers = containers.select(&:appear_in_load_balancer)
         .map { |c| AppDeployer::Container.build_name(c.name, '') }
       cluster.find_load_balancer_containers(lb_containers, version)
+    end
+
+    def find_load_balancer_ports(version)
+      pairs = find_load_balancer_containers(version)
+
+      pairs.flat_map do |pair|
+        pair[:container].info['Ports'].map do |port|
+          { host: pair[:cluster_instance].ip, port: port['PublicPort'] }
+        end.compact
+      end
     end
 
     def destroy_old(version)
       ordered_containers.reverse_each do |container|
         old_containers = cluster.find_containers(container, version)
         old_containers.each { |c| c.delete(force: true) }
+      end
+    end
+
+    def find_load_balancer_instances(version)
+      pairs = find_load_balancer_containers(version)
+
+      pairs.flat_map do |pair|
+        pair[:container].info['Ports'].map do |port|
+          pair.merge(port: port['PublicPort'])
+        end.compact
       end
     end
 

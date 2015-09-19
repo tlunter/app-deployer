@@ -70,6 +70,7 @@ application :amtrak do |a|
 end
 
 deploy :amtrak do |d|
+  d.live_check = Proc.new { |host, port| ['curl','-fso','/dev/null',"#{host}:#{port}"] }
   d.s3_location = 'tlunter-amtrak/app-deployer'
   d.load_balancer :amtrak
   d.application :amtrak

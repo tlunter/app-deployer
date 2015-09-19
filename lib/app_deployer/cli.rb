@@ -20,6 +20,14 @@ module AppDeployer
       deploy.start_application(options[:version])
     end
 
+    desc 'validate-application-live DEPLOY', "validate the deploy's application is live"
+    def validate_application_live(deploy)
+      setup
+
+      deploy = AppDeployer::Core::Sandbox.instance[:deploy][deploy.to_sym]
+      deploy.validate_application_live(options[:version])
+    end
+
     desc 'destroy-old-application DEPLOY', "destroy this application's old deploys"
     def destroy_old_application(deploy)
       setup

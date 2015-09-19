@@ -12,6 +12,7 @@ module AppDeployer
 
     def local
       self.location = :local
+      self.ip ||= '127.0.0.1'
     end
 
     def running_container_count
@@ -19,13 +20,13 @@ module AppDeployer
     end
 
     def containers
-      Docker::Container.all({}, connection)
+      Docker::Container.all({}, docker_connection)
     end
 
     def start_container(container, number, version)
       docker_container = Docker::Container.create(
         container.to_container_create_opts(number, version),
-        connection
+        docker_connection
       )
       docker_container.start
     end
@@ -41,29 +42,36 @@ module AppDeployer
         end
       end
 
-      lb_containers.flat_map do |container|
-        container.info['Ports'].map do |port|
-          { host: ip, port: port['PublicPort'] }
-        end.compact
+      lb_containers.map do |container|
+        { cluster_instance: self, container: container }
       end
     end
 
     def test_connectivity
       begin
-        Docker.version(connection)
+        Docker.version(docker_connection)
         true
       rescue Excon::Errors::Error, Docker::Error::DockerError
         false
       end
     end
 
+    def run_live_check(cmd)
+      shell_connection.run(cmd) == 0
+    end
+
     private
 
-    attr_reader :connection
+    attr_reader :docker_connection, :shell_connection
 
     def after_initialize
       if location == :local
-        @connection = Docker::Connection.new(Docker.url, Docker.options)
+        @docker_connection = Docker::Connection.new(Docker.url, Docker.options)
+        if ip == '127.0.0.1'
+          @shell_connection = Core::Executor.local
+        else
+          @shell_connection = Core::Executor.remote(ssh_config: { host: ip })
+        end
       else
         opts = options.dup || {}
         if cert_path = opts[:cert_path]
@@ -75,10 +83,11 @@ module AppDeployer
           )
         end
 
-        @connection = Docker::Connection.new(
+        @docker_connection = Docker::Connection.new(
           location,
           opts
         )
+        @shell_connection = Core::Executor.remote(ssh_config: { host: ip })
       end
     end
   end

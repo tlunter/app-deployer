@@ -112,14 +112,10 @@ module AppDeployer
 
       def initialize(*args, &block)
         self.class.default_values.each do |key, value|
-          if value.is_a?(Proc)
-            instance_variable_set(:"@#{key}", value.call)
-          else
-            begin
-              instance_variable_set(:"@#{key}", value.clone)
-            rescue TypeError
-              instance_variable_set(:"@#{key}", value)
-            end
+          begin
+            instance_variable_set(:"@#{key}", value.clone)
+          rescue TypeError
+            instance_variable_set(:"@#{key}", value)
           end
         end
 

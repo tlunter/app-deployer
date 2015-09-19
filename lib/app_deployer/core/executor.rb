@@ -43,6 +43,8 @@ module AppDeployer
       end
 
       def run(cmd, stdin: nil)
+        $stderr.puts "Running #{cmd}"
+
         mode = stdin ? 'r+' : 'r'
         IO.popen(cmd, mode, err: [:child, :out]) do |io|
           if stdin
@@ -66,7 +68,12 @@ module AppDeployer
             nil
           end
         end
-        $?.exitstatus
+
+        exitstatus = $?.exitstatus
+
+        $stderr.puts "Command `#{cmd}` exited: #{exitstatus}"
+
+        exitstatus
       end
     end
 
@@ -79,6 +86,8 @@ module AppDeployer
 
       def run(cmd, stdin: nil)
         exitstatus = nil
+
+        $stderr.puts "Running #{cmd}"
 
         Net::SSH.start(ssh_config[:host], ssh_config[:user]) do |ssh|
           ssh.open_channel do |ch|
@@ -114,6 +123,8 @@ module AppDeployer
             end
           end
         end
+
+        $stderr.puts "Command `#{cmd}` exited: #{exitstatus}"
 
         exitstatus
       end
