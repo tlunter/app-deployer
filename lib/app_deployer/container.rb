@@ -15,6 +15,7 @@ module AppDeployer
     class_attribute :volumes_froms, class_name: :containers, type: :collection
     attribute :ports, default: []
     attribute :command
+    attribute :environment
 
     attribute :appear_in_load_balancer, default: false
 
@@ -40,6 +41,7 @@ module AppDeployer
         },
         'Cmd' => command,
         'ExposedPorts' => Hash[ports.map { |p| [p, {}] }],
+        'Env' => environment_config,
         'HostConfig' => {
           'PublishAllPorts' => !ports.empty?,
           'Links' => links_config(version),
@@ -64,6 +66,14 @@ module AppDeployer
     def volumes_from_config(version)
       volumes_froms.map do |container|
         self.class.build_name(container.name, 1, version)
+      end
+    end
+
+    def environment_config
+      return [] if environment.nil?
+
+      environment.dup.map do |k, v|
+        "#{k}=#{v.nil? ? ENV[k.to_s] : v}"
       end
     end
   end
