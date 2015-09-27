@@ -1,5 +1,4 @@
 require 'app_deployer'
-require 'pry'
 
 module AppDeployer
   class CLI < Thor
