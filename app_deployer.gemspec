@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'excon', '~> 0.45'
   spec.add_dependency 'nokogiri', '~> 1.6.4'
-  spec.add_dependency 'docker-api', '~> 1.22.2'
+  spec.add_dependency 'docker-api', '~> 1.22'
   spec.add_dependency 'activesupport'
   spec.add_dependency 'thor', '~> 0.19.1'
   spec.add_dependency 'net-ssh', '~> 2.9.2'
