@@ -16,6 +16,7 @@ module AppDeployer
     attribute :ports, default: []
     attribute :command
     attribute :environment
+    attribute :restart
 
     attribute :appear_in_load_balancer, default: false
 
@@ -45,7 +46,8 @@ module AppDeployer
         'HostConfig' => {
           'PublishAllPorts' => !ports.empty?,
           'Links' => links_config(version),
-          'VolumesFrom' => volumes_from_config(version)
+          'VolumesFrom' => volumes_from_config(version),
+          'RestartPolicy' => restart
         }
       }
     end
